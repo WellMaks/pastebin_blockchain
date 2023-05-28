@@ -2,7 +2,8 @@ const express = require("express");
 const Web3 = require("web3");
 const configuration = require("../build/contracts/Pastebin.json"); // assuming the path is correct
 const bodyParser = require("body-parser");
-
+require("dotenv").config({ path: "../.env" });
+const { MNEMONIC, PROJECT_ID } = process.env;
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -10,27 +11,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Parse JSON bodies
 app.use(bodyParser.json());
 
-const CONTRACT_ADDRESS = configuration.networks["5777"].address;
+const CONTRACT_ADDRESS = configuration.networks["5"].address;
 const CONTRACT_ABI = configuration.abi;
 
-let web3;
+let web3 = new Web3(`https://goerli.infura.io/v3/${PROJECT_ID}`);
 
-// Check if Web3 provider is available (e.g., MetaMask)
-if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
-  // Use the Web3 provider injected by MetaMask
-  web3 = new Web3(window.ethereum);
-
-  // Request access to user accounts
-  window.ethereum.enable().catch((error) => {
-    console.error("Access to user accounts denied:", error);
-  });
-} else {
-  // Fallback - use local provider
-  web3 = new Web3("http://127.0.0.1:7545");
-}
+// check if connected to network
+// web3.eth.getBlockNumber()
+// .then((result) => {
+//   console.log("Latest block number is:", result);
+// })
+// .catch((error) => {
+//   console.error("Error fetching latest block number:", error);
+// });
 
 const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-
+app.get("/favicon.ico", (req, res) => res.status(204).send());
 app.get("/", (req, res) => {
   // Serve the index.html file here
   res.sendFile(__dirname + "/index.html");
@@ -42,6 +38,10 @@ app.post("/create", async (req, res) => {
 
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
+
+    if (!account) {
+      throw new Error("No Ethereum account available.");
+    }
 
     const result = await contract.methods.createPaste(text).send({
       from: account,
