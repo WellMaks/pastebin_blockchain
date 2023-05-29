@@ -1,9 +1,9 @@
-const ethers = require("ethers");
-const wallet = ethers.Wallet.createRandom();
-console.log("address:", wallet.address);
-console.log("mnemonic:", wallet.mnemonic.phrase);
-console.log("privateKey:", wallet.privateKey);
-console.log("publicKey:", wallet.publicKey);
+// const ethers = require("ethers");
+// const wallet = ethers.Wallet.createRandom();
+// console.log("address:", wallet.address);
+// console.log("mnemonic:", wallet.mnemonic.phrase);
+// console.log("privateKey:", wallet.privateKey);
+// console.log("publicKey:", wallet.publicKey);
 
 // address: 0x0D3a0756D893c72A7Ea326239c50e75068C89D0C
 // mnemonic: member potato consider fiber bulb hunt melt truth glue light feature prison

@@ -4,17 +4,21 @@ const configuration = require("../build/contracts/Pastebin.json"); // assuming t
 const bodyParser = require("body-parser");
 require("dotenv").config({ path: "../.env" });
 const { MNEMONIC, PROJECT_ID } = process.env;
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 const app = express();
 
+app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Parse JSON bodies
 app.use(bodyParser.json());
 
 const CONTRACT_ADDRESS = configuration.networks["5"].address;
 const CONTRACT_ABI = configuration.abi;
 
-let web3 = new Web3(`https://goerli.infura.io/v3/${PROJECT_ID}`);
+const provider = new HDWalletProvider(
+  MNEMONIC,
+  `https://goerli.infura.io/v3/${PROJECT_ID}`
+);
+let web3 = new Web3(provider);
 
 // check if connected to network
 // web3.eth.getBlockNumber()
@@ -32,13 +36,18 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+let account;
+
+app.post("/account", (req, res) => {
+  account = req.body.account;
+  console.log("Connected account:", account);
+  // Do whatever you want with the account information
+  res.sendStatus(200);
+});
+
 app.post("/create", async (req, res) => {
   try {
     const text = req.body.text;
-
-    const accounts = await web3.eth.getAccounts();
-    const account = accounts[0];
-
     if (!account) {
       throw new Error("No Ethereum account available.");
     }
@@ -48,8 +57,8 @@ app.post("/create", async (req, res) => {
       gas: 3000000,
     });
 
-    // res.send(result.events.NewPaste.returnValues.id);
     res.redirect(`/${result.events.NewPaste.returnValues.id}`);
+    // res.json(result.events.NewPaste.returnValues.id);
   } catch (err) {
     res.status(500).send(err.toString());
   }
